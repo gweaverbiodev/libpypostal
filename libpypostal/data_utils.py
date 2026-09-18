@@ -1,4 +1,5 @@
 """Libpostal data utils."""
+
 import importlib.resources
 import os
 import subprocess

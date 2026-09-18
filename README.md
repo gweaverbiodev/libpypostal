@@ -1,5 +1,9 @@
 # libpypostal
 
+[![CI](https://github.com/gweaverbiodev/libpypostal/actions/workflows/pr-test-suite.yml/badge.svg)](https://github.com/gweaverbiodev/libpypostal/actions/workflows/pr-test-suite.yml)
+[![PyPI](https://img.shields.io/pypi/v/libpypostal)](https://pypi.org/project/libpypostal/)
+[![Latest Tag](https://img.shields.io/github/v/tag/gweaverbiodev/libpypostal)](https://github.com/gweaverbiodev/libpypostal/releases)
+
 Python bindings for [libpostal](https://github.com/openvenues/libpostal), an open-source address parsing library.
 
 ## Why another Python library for libpostal?
@@ -65,3 +69,33 @@ from libpypostal import version
 version.LIBPOSTAL_VERSION
 ```
 
+The Python package version is derived from Git tags. A tag such as `v0.1.0`
+produces package version `0.1.0`.
+
+## Development
+
+Install libpostal first, then install [uv](https://docs.astral.sh/uv/) and run:
+
+```console
+uv sync --extra dev --extra test
+uv run pre-commit install
+```
+
+Common commands:
+
+```console
+make lint       # Check formatting and types
+make format     # Auto-fix and format
+make test       # Run tests
+make build      # Build the wheel and source distribution
+```
+
+## Releasing
+
+Release Drafter maintains a draft GitHub release from merged pull requests.
+Choose the final version, publish the draft, and GitHub Actions will build and
+smoke-test all distribution artifacts before publishing them to PyPI with
+trusted publishing. The GitHub release tag must use the form `vX.Y.Z`.
+
+The publish workflow can also be run manually against TestPyPI without creating
+a release.

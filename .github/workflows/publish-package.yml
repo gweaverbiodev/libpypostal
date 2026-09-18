@@ -1,0 +1,156 @@
+name: Publish Package
+
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+
+permissions: {}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-wheels:
+    name: Build wheel (${{ matrix.os }}, ${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: x86_64
+          - os: ubuntu-24.04-arm
+            arch: aarch64
+          - os: macos-15-intel
+            arch: x86_64
+          - os: macos-14
+            arch: arm64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Compute version from git tag
+        id: version
+        run: |
+          VERSION="$(uv run --no-project --with 'setuptools-scm>=8' python -m setuptools_scm)"
+          echo "python=$VERSION" | tee -a "$GITHUB_OUTPUT"
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v4.2.0
+        env:
+          SETUPTOOLS_SCM_PRETEND_VERSION_FOR_LIBPYPOSTAL: ${{ steps.version.outputs.python }}
+          CIBW_ENVIRONMENT_PASS_LINUX: SETUPTOOLS_SCM_PRETEND_VERSION_FOR_LIBPYPOSTAL
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-* cp314-*"
+          CIBW_SKIP: "*-musllinux_*"
+          CIBW_ARCHS_LINUX: ${{ matrix.arch }}
+          CIBW_ARCHS_MACOS: ${{ matrix.arch }}
+          CIBW_BEFORE_ALL_LINUX: >-
+            yum install -y autoconf automake curl git libtool pkgconfig &&
+            git clone --branch v1.1 --depth 1 https://github.com/openvenues/libpostal.git /tmp/libpostal &&
+            cd /tmp/libpostal &&
+            ./bootstrap.sh &&
+            ./configure --disable-data-download --disable-sse2 &&
+            make -j4 &&
+            make install &&
+            ldconfig
+          CIBW_BEFORE_ALL_MACOS: >-
+            brew install autoconf automake libtool pkg-config &&
+            git clone --branch v1.1 --depth 1 https://github.com/openvenues/libpostal.git /tmp/libpostal &&
+            cd /tmp/libpostal &&
+            ./bootstrap.sh &&
+            ./configure --disable-data-download --disable-sse2 &&
+            make -j4 &&
+            sudo make install
+          CIBW_TEST_REQUIRES: pytest pytest-xdist
+          CIBW_TEST_COMMAND: pytest --import-mode=importlib {project}/tests -v -n auto
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}-${{ matrix.arch }}
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+
+  build-sdist:
+    name: Build sdist
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Build sdist
+        run: uv build --sdist
+
+      - name: Install libpostal
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake curl libtool pkg-config
+          git clone --branch v1.1 --depth 1 https://github.com/openvenues/libpostal.git /tmp/libpostal
+          cd /tmp/libpostal
+          ./bootstrap.sh
+          ./configure --disable-data-download --disable-sse2
+          make -j4
+          sudo make install
+          sudo ldconfig
+
+      - name: Smoke-test sdist install
+        run: |
+          uv venv /tmp/sdist-venv
+          uv pip install --python /tmp/sdist-venv/bin/python pytest pytest-xdist dist/*.tar.gz
+          cd /tmp
+          /tmp/sdist-venv/bin/pytest --import-mode=importlib "$GITHUB_WORKSPACE/tests" -v -n auto
+
+      - name: Upload sdist
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  publish:
+    name: Publish to PyPI
+    needs: [build-wheels, build-sdist]
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event_name == 'workflow_dispatch' && 'testpypi' || 'pypi' }}
+    permissions:
+      id-token: write
+    steps:
+      - name: Download wheels
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist
+
+      - name: Download sdist
+        uses: actions/download-artifact@v4
+        with:
+          name: sdist
+          path: dist
+
+      - name: Publish to TestPyPI
+        if: github.event_name == 'workflow_dispatch'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
+      - name: Publish to PyPI
+        if: github.event_name == 'push'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true

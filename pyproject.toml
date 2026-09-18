@@ -1,29 +1,57 @@
 [project]
 name = "libpypostal"
 description = "Python bindings for libpostal C library."
-version = "0.0.6"
-requires-python = ">=3.8"
+dynamic = ["version"]
+requires-python = ">=3.10"
 readme = "README.md"
-license = {text = "MIT License"}
+license = "MIT"
+authors = [
+  {name = "Garrett Weaver", email = "gweaverdev@icloud.com"},
+]
+maintainers = [
+  {name = "Garrett Weaver", email = "gweaverdev@icloud.com"},
+]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
 
+[project.optional-dependencies]
+test = ["build>=1.0", "pytest==9.0.3", "pytest-xdist==3.5.0"]
+dev = ["mypy==1.20.0", "pre-commit==4.5.1", "ruff==0.15.10"]
+
 [project.urls]
-Repository = "https://github.com/gmweaver/libpypostal"
+Repository = "https://github.com/gweaverbiodev/libpypostal"
+Issues = "https://github.com/gweaverbiodev/libpypostal/issues"
 
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+# Release versions come from git tags (for example, v0.1.0 -> 0.1.0).
+# Untagged commits receive a PEP 440 development version without a local
+# +g<sha> suffix, so artifacts are valid for PyPI and TestPyPI.
+local_scheme = "no-local-version"
+fallback_version = "0.0.0"
 
 [tool.setuptools.packages.find]
 include = ["libpypostal*"]
 
 [tool.setuptools.package-data]
-libpypostal= ["libpostal_download_data"]
+libpypostal = ["libpostal_download_data"]
+
+# Build wheels that remain usable on older supported macOS releases instead of
+# inheriting the GitHub runner's deployment target.
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx_x86_64"
+environment = { MACOSX_DEPLOYMENT_TARGET = "10.15" }
+
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx_arm64"
+environment = { MACOSX_DEPLOYMENT_TARGET = "11.0" }

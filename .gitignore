@@ -1,7 +1,26 @@
-__pycache__
-*.egg-info
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
 *.so
-build
-dist
-.venv
-.vscode
+*.dylib
+*.pyd
+build/
+dist/
+.python-version
+
+# Virtual environments
+.venv/
+
+# Tool caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
