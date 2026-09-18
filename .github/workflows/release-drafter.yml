@@ -6,14 +6,20 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: read
+permissions: {}
+
+concurrency:
+  group: release-drafter
+  cancel-in-progress: true
 
 jobs:
   update-release-draft:
+    name: Update release draft
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Create and update the draft GitHub release.
+      pull-requests: read # Read merged PR metadata for generated release notes.
     steps:
-      - uses: release-drafter/release-drafter@v7
+      - uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 # v7.7.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

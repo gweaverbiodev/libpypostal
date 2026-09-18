@@ -18,11 +18,15 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          version: "0.12.17"
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: "3.14"
 
@@ -30,7 +34,7 @@ jobs:
         run: uv lock --check
 
       - name: Install lint dependencies
-        run: uv sync --extra dev --no-install-project
+        run: uv sync --frozen --extra dev --no-install-project
 
       - name: Ruff check
         run: uv run --no-sync ruff check .
@@ -49,11 +53,15 @@ jobs:
       matrix:
         python-version: ["3.10", "3.14"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          version: "0.12.17"
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -61,7 +69,7 @@ jobs:
         run: uv lock --check
 
       - name: Install test dependencies
-        run: uv sync --extra test --no-install-project
+        run: uv sync --frozen --extra test --no-install-project
 
       - name: Run tests
         run: uv run --no-sync pytest tests/ -v -n auto
