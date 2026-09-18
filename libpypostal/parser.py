@@ -1,4 +1,5 @@
 """Python bindings to libpostal parse_address."""
+
 from enum import Enum
 from typing import Dict, List, Literal, Optional, Tuple, Union, overload
 
@@ -44,8 +45,7 @@ def parse_address(
     merge_multiple_matches: Literal[True],
     language: Optional[str] = None,
     country_code: Optional[str] = None,
-) -> Dict[AddressComponent, str]:
-    ...
+) -> Dict[AddressComponent, str]: ...
 
 
 @overload
@@ -54,8 +54,7 @@ def parse_address(
     merge_multiple_matches: Literal[False],
     language: Optional[str] = None,
     country_code: Optional[str] = None,
-) -> Dict[AddressComponent, List[str]]:
-    ...
+) -> Dict[AddressComponent, List[str]]: ...
 
 
 def parse_address(

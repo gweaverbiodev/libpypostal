@@ -1,0 +1,14 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: b831c3dc5d27d9da294ae4e915773b99aa24a7c5 # v0.15.10
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 8e5c80792e2ec0c87804d8ef915bf35e2caea6da # v1.20.0
+    hooks:
+      - id: mypy
+        args: [libpypostal/, tests/]
+        pass_filenames: false
