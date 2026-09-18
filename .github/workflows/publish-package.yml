@@ -68,7 +68,7 @@ jobs:
             git fetch --depth 1 origin 9c975972985b54491e756efd70e416f18ff97958 &&
             git checkout --detach FETCH_HEAD &&
             ./bootstrap.sh &&
-            ./configure --disable-data-download --disable-sse2 &&
+            CFLAGS="-Wno-error=incompatible-pointer-types" ./configure --disable-data-download --disable-sse2 &&
             make -j4 &&
             make install &&
             ldconfig
